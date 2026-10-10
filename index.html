@@ -7,8 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffcc00">
 <style>
-body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:12px;padding-bottom:165px}
-h1{color:#ffcc00;text-align:center;margin:0 0 2px}
+body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:12px;padding-bottom:180px}
 .sub{text-align:center;color:#aaa;margin-bottom:10px;font-size:12px}
 .cards{display:flex;gap:6px;margin-bottom:10px}
 .card{flex:1;background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:8px;text-align:center;font-size:13px}
@@ -22,11 +21,10 @@ input,select{width:100%;padding:12px;border:1px solid #444;color:#fff;background
 .btn-red{background:#ff4444;color:#fff}
 .btn-green{background:#00c853;color:#fff}
 .btn-blue{background:#2196f3;color:#fff}
-.devedor{padding:10px;border-radius:12px;margin:5px 0;background:#222;border:1px solid #333;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.devedor.ativo{border-color:#ffcc00;background:#332e00}
+.devedor{padding:10px;border-radius:12px;margin:5px 0;background:#222;border:1px solid #333;display:flex;justify-content:space-between;align-items:center}
+.devedor.ativo{border-color:#ffcc00;background:#332e00;box-shadow:0 0 10px #ffcc00aa}
 .item{background:#222;padding:10px;border-radius:10px;margin:5px 0;display:flex;justify-content:space-between;border-left:4px solid #ffcc00}
 .item.ok{border-left-color:#00ff88;opacity:.8}
-.item.ok b{text-decoration:line-through}
 .linha{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #btnInstalar{display:none;background:#ffcc00;color:#000;position:fixed;bottom:15px;left:12px;right:12px;padding:16px;border-radius:16px;font-weight:900;z-index:5000}
 .share-box{background:linear-gradient(135deg,#1a1a00,#332e00);border:2px solid #ffcc00;border-radius:14px;padding:12px;margin-top:10px}
@@ -39,6 +37,7 @@ input,select{width:100%;padding:12px;border:1px solid #444;color:#fff;background
 <input id="novoDevedor" placeholder="Nome do devedor... ex: Marcos">
 <button class="btn btn-yellow" onclick="addDevedor()">+ ADICIONAR DEVEDOR</button>
 <div id="listaDevedores"></div>
+<small style="color:#ffcc00">Dica: Clique no nome do devedor para selecionar</small>
 </div>
 <div id="areaControle" style="display:none">
 <div class="cards">
@@ -47,12 +46,12 @@ input,select{width:100%;padding:12px;border:1px solid #444;color:#fff;background
 <div class="card">FALTA<br><div id="totalFalta" class="saidas">0,00</div></div>
 </div>
 <div class="box">
-<b id="tituloDev"></b>
+<b id="tituloDev" style="color:#ffcc00"></b>
 <select id="tipo" onchange="trocaTipo()">
 <option value="divida">💸 ADICIONAR DÍVIDA - O que ele deve</option>
 <option value="recebido">✅ RECEBI - Pagamento</option>
 </select>
-<input id="desc" placeholder="O que foi? Ex: empréstimo, produto...">
+<input id="desc" placeholder="O que foi? Ex: Serviços gerais">
 <input id="valor" type="number" placeholder="Valor R$">
 <input id="data" type="date">
 <button class="btn btn-red" id="btnSalvar" onclick="salvar()">+ ADICIONAR NA DÍVIDA</button>
@@ -80,76 +79,51 @@ input,select{width:100%;padding:12px;border:1px solid #444;color:#fff;background
 </div>
 <button id="btnInstalar" onclick="instalarApp()">📲 INSTALAR APP NO CELULAR</button>
 <script>
-let chaveFixa = 'plugtv_DIVIDAS_FINAL_UNICO_V2';
-let db;
+let chave = 'plugtv_DIVIDAS_FINAL_UNICO_V2';
+let dados = { devedores: [] };
 try {
-  let atual = localStorage.getItem(chaveFixa);
-  if (atual) {
-    db = JSON.parse(atual);
-  } else {
-    let antigo = localStorage.getItem('dividas_final_v4');
-    if (antigo) {
-      let arr = JSON.parse(antigo);
-      db = { devedores: [] };
-      if (Array.isArray(arr) && arr.length > 0) {
-        let mapa = {};
-        arr.forEach(it => {
-          let nome = it.nome || 'Marcos';
-          if (!mapa[nome]) mapa[nome] = [];
-          mapa[nome].push({
-            id: it.id || Date.now(),
-            desc: it.nome || it.desc || 'divida',
-            valor: it.valor || 0,
-            data: it.data || new Date().toISOString().slice(0,10),
-            tipo: it.tipo || 'divida'
-          });
-        });
-        Object.keys(mapa).forEach(n => {
-          db.devedores.push({ nome: n, dividas: mapa[n] });
-        });
-      }
-    } else {
-      db = { devedores: [] };
-    }
-  }
-} catch(e) {
-  db = { devedores: [] };
-}
-if (!db.devedores) db.devedores = [];
-let devAtual = db.devedores.length > 0? db.devedores[0].nome : null;
-function showAviso(t){
-  let d = document.getElementById('aviso');
-  d.style.display = 'block';
-  d.innerText = t;
-  setTimeout(()=> d.style.display='none', 3000);
+  let s = localStorage.getItem(chave);
+  if (s) dados = JSON.parse(s);
+} catch(e) { dados = { devedores: [] }; }
+let devAtual = null;
+if (dados.devedores.length > 0) { devAtual = dados.devedores[0].nome; }
+function aviso(t){
+  let el = document.getElementById('aviso');
+  el.style.display = 'block';
+  el.innerText = t;
+  setTimeout(function(){ el.style.display='none'; }, 2500);
 }
 function save(){
-  localStorage.setItem(chaveFixa, JSON.stringify(db));
+  localStorage.setItem(chave, JSON.stringify(dados));
   renderDevs();
   renderLista();
 }
 function addDevedor(){
-  let n = document.getElementById('novoDevedor').value.trim();
-  if (!n) return;
-  let existe = db.devedores.find(d => d.nome.toLowerCase() === n.toLowerCase());
-  if (existe) {
+  let input = document.getElementById('novoDevedor');
+  let n = input.value.trim();
+  if (!n) { aviso('Digite o nome'); return; }
+  let existe = null;
+  for (let i=0;i<dados.devedores.length;i++){
+    if (dados.devedores[i].nome.toLowerCase() === n.toLowerCase()) existe = dados.devedores[i];
+  }
+  if (existe){
     devAtual = existe.nome;
+    input.value = '';
     save();
+    aviso('Devedor selecionado: ' + existe.nome);
     return;
   }
-  db.devedores.push({ nome: n, dividas: [] });
-  document.getElementById('novoDevedor').value = '';
+  dados.devedores.push({ nome: n, dividas: [] });
+  input.value = '';
   devAtual = n;
   save();
+  aviso('Devedor adicionado e selecionado');
 }
-function selectDev(nome){
-  devAtual = nome;
-  save();
-}
+function selectDev(nome){ devAtual = nome; save(); }
 function trocaTipo(){
   let t = document.getElementById('tipo').value;
   let btn = document.getElementById('btnSalvar');
-  if (t === 'recebido') {
+  if (t === 'recebido'){
     btn.innerText = '✅ CONFIRMAR RECEBIMENTO';
     btn.className = 'btn btn-green';
   } else {
@@ -158,17 +132,26 @@ function trocaTipo(){
   }
 }
 function salvar(){
+  if (!devAtual){
+    aviso('Clique no nome do devedor primeiro!');
+    return;
+  }
   let desc = document.getElementById('desc').value.trim();
   let valor = parseFloat(document.getElementById('valor').value);
   let data = document.getElementById('data').value || new Date().toISOString().slice(0,10);
   let tipo = document.getElementById('tipo').value;
-  if (!devAtual) { showAviso('Selecione um devedor'); return; }
-  if (!valor) { showAviso('Digite o valor'); return; }
-  let dev = db.devedores.find(d => d.nome === devAtual);
-  if (!dev) return;
+  if (!valor || isNaN(valor)){
+    aviso('Digite o valor');
+    return;
+  }
+  let dev = null;
+  for (let i=0;i<dados.devedores.length;i++){
+    if (dados.devedores[i].nome === devAtual) dev = dados.devedores[i];
+  }
+  if (!dev){ aviso('Devedor não encontrado'); return; }
   dev.dividas.push({
     id: Date.now(),
-    desc: desc || (tipo==='recebido'? 'Pagamento recebido' : 'Dívida'),
+    desc: desc || (tipo==='recebido'? 'Pagamento' : 'Serviço'),
     valor: valor,
     data: data,
     tipo: tipo
@@ -176,133 +159,147 @@ function salvar(){
   document.getElementById('desc').value = '';
   document.getElementById('valor').value = '';
   save();
-  showAviso(tipo==='recebido'? 'Recebido!' : 'Adicionado!');
+  aviso('Adicionado!');
 }
 function renderDevs(){
   let div = document.getElementById('listaDevedores');
   div.innerHTML = '';
-  db.devedores.forEach(d => {
-    let total = 0, receb = 0;
-    d.dividas.forEach(l => {
-      if (l.tipo === 'recebido') receb += l.valor;
-      else total += l.valor;
-    });
+  for (let i=0;i<dados.devedores.length;i++){
+    let d = dados.devedores[i];
+    let total=0, receb=0;
+    for (let j=0;j<d.dividas.length;j++){
+      if (d.dividas[j].tipo==='recebido') receb+=d.dividas[j].valor;
+      else total+=d.dividas[j].valor;
+    }
     let falta = total - receb;
     let el = document.createElement('div');
-    el.className = 'devedor' + (d.nome === devAtual? ' ativo' : '');
-    el.innerHTML = '<span><b>' + d.nome + '</b><br><small>Falta: R$ ' + falta.toFixed(2) + '</small></span><span style="color:#ff4444;padding:5px">🗑️</span>';
-    el.onclick = function(){ selectDev(d.nome); };
+    el.className = 'devedor' + (d.nome===devAtual? ' ativo' : '');
+    el.innerHTML = '<span><b>' + d.nome + '</b><br><small>Falta: R$ ' + falta.toFixed(2) + '</small></span>';
+    (function(nome){
+      el.onclick = function(){ selectDev(nome); };
+    })(d.nome);
     div.appendChild(el);
-  });
+  }
 }
 function renderLista(){
-  if (!devAtual || db.devedores.length === 0) {
-    document.getElementById('areaControle').style.display = 'none';
+  let area = document.getElementById('areaControle');
+  if (!devAtual || dados.devedores.length===0){
+    area.style.display='none';
     return;
   }
-  document.getElementById('areaControle').style.display = 'block';
-  let dev = db.devedores.find(d => d.nome === devAtual);
-  if (!dev) {
-    devAtual = db.devedores[0].nome;
-    dev = db.devedores[0];
+  area.style.display='block';
+  let dev = null;
+  for (let i=0;i<dados.devedores.length;i++){
+    if (dados.devedores[i].nome===devAtual) dev = dados.devedores[i];
+  }
+  if (!dev){
+    devAtual = dados.devedores[0].nome;
+    dev = dados.devedores[0];
   }
   document.getElementById('tituloDev').innerText = '📒 ' + dev.nome;
-  let total = 0, receb = 0;
-  dev.dividas.forEach(l => {
-    if (l.tipo === 'recebido') receb += l.valor;
-    else total += l.valor;
-  });
+  let total=0, receb=0;
+  for (let j=0;j<dev.dividas.length;j++){
+    if (dev.dividas[j].tipo==='recebido') receb+=dev.dividas[j].valor;
+    else total+=dev.dividas[j].valor;
+  }
   document.getElementById('totalDivida').innerText = 'R$ ' + total.toFixed(2);
   document.getElementById('totalRecebido').innerText = 'R$ ' + receb.toFixed(2);
-  document.getElementById('totalFalta').innerText = 'R$ ' + (total - receb).toFixed(2);
+  document.getElementById('totalFalta').innerText = 'R$ ' + (total-receb).toFixed(2);
   let lista = document.getElementById('lista');
   lista.innerHTML = '';
-  dev.dividas.slice().reverse().forEach(l => {
-    let div = document.createElement('div');
-    div.className = 'item' + (l.tipo === 'recebido'? ' ok' : '');
-    div.innerHTML = '<div><b>' + l.desc + '</b><br><small>' + l.data + ' - R$ ' + l.valor.toFixed(2) + '</small></div><span onclick="apagarLanc(' + l.id + ')" style="color:#ff4444;cursor:pointer;padding:5px 10px">✕</span>';
-    lista.appendChild(div);
-  });
+  let rev = dev.dividas.slice().reverse();
+  for (let k=0;k<rev.length;k++){
+    let l = rev[k];
+    let item = document.createElement('div');
+    item.className = 'item' + (l.tipo==='recebido'? ' ok' : '');
+    item.innerHTML = '<div><b>' + l.desc + '</b><br><small>' + l.data + ' - R$ ' + l.valor.toFixed(2) + ' ' + (l.tipo==='recebido'?'(RECEBIDO)':'') + '</small></div><span onclick="apagar(' + l.id + ')" style="color:#ff4444;padding:8px;cursor:pointer">✕</span>';
+    lista.appendChild(item);
+  }
 }
-function apagarLanc(id){
-  let dev = db.devedores.find(d => d.nome === devAtual);
-  dev.dividas = dev.dividas.filter(x => x.id!== id);
-  save();
-}
-function excluirDev(nome){
-  if (!confirm('Excluir ' + nome + '?')) return;
-  db.devedores = db.devedores.filter(d => d.nome!== nome);
-  if (devAtual === nome) devAtual = db.devedores.length? db.devedores[0].nome : null;
+function apagar(id){
+  let dev = null;
+  for (let i=0;i<dados.devedores.length;i++){
+    if (dados.devedores[i].nome===devAtual) dev = dados.devedores[i];
+  }
+  if (!dev) return;
+  let novo = [];
+  for (let j=0;j<dev.dividas.length;j++){
+    if (dev.dividas[j].id!==id) novo.push(dev.dividas[j]);
+  }
+  dev.dividas = novo;
   save();
 }
 function fazerBackup(){
-  let blob = new Blob([JSON.stringify(db)], {type:'application/json'});
+  let blob = new Blob([JSON.stringify(dados)], {type:'application/json'});
   let a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'backup-dividas-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'backup-dividas.json';
   a.click();
-  showAviso('Backup baixado!');
+  aviso('Backup baixado');
 }
 function abrirRestaurar(){
-  let input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = function(e){
+  let inp = document.createElement('input');
+  inp.type='file';
+  inp.accept='.json';
+  inp.onchange = function(e){
     let f = e.target.files[0];
     if (!f) return;
     let r = new FileReader();
     r.onload = function(ev){
-      try {
-        let imp = JSON.parse(ev.target.result);
-        if (imp.devedores) { db = imp; }
-        else if (Array.isArray(imp)) { db = { devedores: [{ nome: 'Marcos', dividas: imp }] }; }
-        else { alert('Arquivo inválido'); return; }
-        devAtual = db.devedores[0]? db.devedores[0].nome : null;
+      try{
+        let obj = JSON.parse(ev.target.result);
+        if (obj.devedores){
+          dados = obj;
+        } else if (Array.isArray(obj)){
+          dados = { devedores: [{ nome:'Marcos', dividas: obj }] };
+        } else {
+          alert('Arquivo inválido'); return;
+        }
+        if (dados.devedores.length>0) devAtual = dados.devedores[0].nome;
         save();
-        showAviso('Restaurado!');
-      } catch(err) { alert('Arquivo inválido'); }
+        aviso('Restaurado!');
+      } catch(err){ alert('Arquivo inválido'); }
     };
     r.readAsText(f);
   };
-  input.click();
+  inp.click();
 }
 function recuperaAntigo(){
-  let antigo = localStorage.getItem('dividas_final_v4');
-  if (!antigo) { showAviso('Nada antigo encontrado'); return; }
-  if (confirm('Recuperar dados antigos?')) {
-    let arr = JSON.parse(antigo);
-    db.devedores.push({ nome: 'Recuperado', dividas: arr.map(it=>({id:Date.now()+Math.random(),desc:it.nome||'antigo',valor:it.valor,data:it.data,tipo:it.tipo||'divida'})) });
+  let ant = localStorage.getItem('dividas_final_v4');
+  if (!ant){ aviso('Nada antigo'); return; }
+  try{
+    let arr = JSON.parse(ant);
+    dados.devedores.push({ nome:'Recuperado', dividas: arr });
+    devAtual = 'Recuperado';
     save();
-  }
+    aviso('Recuperado!');
+  } catch(e){ aviso('Erro ao recuperar'); }
 }
 function zerarTudo(){
-  if (confirm('ZERAR TUDO?')) {
-    if (confirm('Tem certeza?')) {
-      db = { devedores: [] };
-      devAtual = null;
-      localStorage.setItem(chaveFixa, JSON.stringify(db));
-      save();
-    }
-  }
+  if (!confirm('Zerar tudo? Faça backup antes!')) return;
+  if (!confirm('Tem certeza?')) return;
+  dados = { devedores: [] };
+  devAtual = null;
+  save();
 }
 function compartilharApp(){
-  let t = '💰 CONTROLE DE DÍVIDAS - App que uso pra cobrar! https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
-  if (navigator.share) { navigator.share({title:'Controle de Dívidas', text:t}); }
-  else { navigator.clipboard.writeText(t); showAviso('Link copiado!'); }
+  let txt = '💰 Controle de Dívidas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
+  if (navigator.share){ navigator.share({title:'Controle', text:txt}); }
+  else { navigator.clipboard.writeText(txt); aviso('Link copiado'); }
 }
 function convidarZap(){
   let m = encodeURIComponent('💰 Olha esse app pra controlar dívidas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/ - PIX 025.446.319-37 R$2,99/semana');
   window.open('https://wa.me/?text=' + m, '_blank');
 }
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('btnInstalar').style.display = 'block';
+  deferredPrompt=e;
+  document.getElementById('btnInstalar').style.display='block';
 });
 function instalarApp(){
-  if (deferredPrompt) { deferredPrompt.prompt(); }
-  else { showAviso('No Chrome: 3 pontinhos > Instalar app'); }
+  if (deferredPrompt) deferredPrompt.prompt();
+  else aviso('No Chrome: 3 pontinhos > Instalar app');
 }
 trocaTipo();
 renderDevs();
@@ -310,9 +307,9 @@ renderLista();
 document.getElementById('data').valueAsDate = new Date();
 </script>
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(r => { r.forEach(x => x.unregister()); });
-  setTimeout(()=> { navigator.serviceWorker.register('sw.js?v=' + Date.now()); }, 600);
+if ('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(r){ r.forEach(function(x){ x.unregister(); }); });
+  setTimeout(function(){ navigator.serviceWorker.register('sw.js?v=' + Date.now()); }, 500);
 }
 </script>
 </body>
