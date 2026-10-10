@@ -84,9 +84,9 @@ document.getElementById('file').addEventListener('change',function(e){let f=e.ta
 function recuperarAntigo(){let achados=[];for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k.toLowerCase().includes('divid')||k.toLowerCase().includes('marcos')){try{let v=JSON.parse(localStorage.getItem(k));if(v.devedores&&v.devedores.length>0)achados.push(k+' ('+v.devedores.length+')');}catch(e){}}}if(achados.length===0)return alert('Nada antigo encontrado');if(confirm('Achei: '+achados.join(', ')+'\nTentar recuperar?')){let maior=null,max=0;for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);try{let v=JSON.parse(localStorage.getItem(k));if(v.devedores&&v.devedores.length>max){max=v.devedores.length;maior=v;}}catch(e){}}if(maior){db=maior;save();aviso('Recuperado '+max+' devedores');}}}
 document.getElementById('data').valueAsDate=new Date();trocaTipo();renderDev();renderLanc();
 </script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
-</body>
-  <!-- TELA DE BLOQUEIO -->
+</script>
+
+<!-- TELA DE BLOQUEIO - TEM QUE FICAR DENTRO DO BODY -->
 <div id="tela-bloqueio" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;">
   <h2 style="color:#ffcc00;text-align:center;">💰 CONTROLE DE DÍVIDAS</h2>
   <p style="color:#fff;">Digite o código de liberação</p>
@@ -98,8 +98,6 @@ document.getElementById('data').valueAsDate=new Date();trocaTipo();renderDev();r
 <script>
 function validarCodigo(){
   let cod = document.getElementById('inputCodigo').value.trim().toUpperCase();
-  // MESMA LÓGICA DO SEU GERADOR ADMINISTRADOR
-  // Códigos válidos: GRATI- + 4 números + letra de verificação
   if(cod.startsWith('GRATI-') && cod.length >= 9){
     localStorage.setItem('codigo_divida_liberado', cod);
     localStorage.setItem('codigo_divida_data', new Date().toISOString());
@@ -108,7 +106,8 @@ function validarCodigo(){
     alert('Código inválido! Verifique com o administrador.');
   }
 }
-// Verifica se já tem código salvo (válido por 30 dias)
+
+// VERIFICA CÓDIGO PAGO (30 dias)
 let codSalvo = localStorage.getItem('codigo_divida_liberado');
 let dataSalvo = localStorage.getItem('codigo_divida_data');
 if(codSalvo && dataSalvo){
@@ -116,6 +115,21 @@ if(codSalvo && dataSalvo){
   if(diff < 30){
     document.getElementById('tela-bloqueio').style.display='none';
   }
+} else {
+  // TESTE GRÁTIS 3 DIAS
+  let inicioTeste = localStorage.getItem('teste_divida_inicio');
+  if(!inicioTeste){
+    localStorage.setItem('teste_divida_inicio', new Date().toISOString());
+    document.getElementById('tela-bloqueio').style.display='none';
+  } else {
+    let diasTeste = (new Date() - new Date(inicioTeste)) / (1000*60*60*24);
+    if(diasTeste <= 3){
+      document.getElementById('tela-bloqueio').style.display='none';
+    }
+  }
 }
 </script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
+</body>
 </html>
