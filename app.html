@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Dividas</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcc00">
+<style>
+body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:12px;padding-bottom:150px}
+h2{color:#ffcc00;text-align:center;margin:5px}
+.box{background:#151515;border:1px solid #333;border-radius:14px;padding:12px;margin:10px 0}
+input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;background:#222;color:#fff;border:1px solid #ffcc00;box-sizing:border-box;font-size:16px}
+button{width:100%;padding:14px;border-radius:12px;font-weight:bold;border:none;margin:6px 0;font-size:15px}
+.amarelo{background:#ffcc00;color:#000}
+.verde{background:#00c853;color:#fff}
+.azul{background:#2196f3;color:#fff}
+.verm{background:#ff4444;color:#fff}
+.devedor{padding:12px;background:#222;margin:6px 0;border-radius:10px;border:2px solid #444;display:flex;justify-content:space-between}
+.ativo{border-color:#ffcc00!important;background:#332e00!important}
+.item{padding:10px;background:#222;margin:6px 0;border-left:4px solid #ffcc00;border-radius:8px;display:flex;justify-content:space-between}
+.card{flex:1;background:#1e1e1e;border:1px solid #333;border-radius:10px;padding:8px;text-align:center}
+</style>
+</head>
+<body>
+<h2>💰 CONTROLE DE DÍVIDAS</h2>
+<p style="text-align:center;color:#aaa;font-size:12px">Banco Gratidão - PIX 025.446.319-37</p>
+
+<div class="box">
+<input id="novoDev" placeholder="Nome do devedor: Ex: Marcos">
+<button class="amarelo" onclick="addDev()">+ ADICIONAR DEVEDOR</button>
+<div id="listaDevs"></div>
+</div>
+
+<div id="area" style="display:none">
+<div class="box">
+<div style="display:flex;gap:6px">
+<div class="card">TOTAL<br><b id="tTot" style="color:#ffcc00">R$ 0</b></div>
+<div class="card">RECEBIDO<br><b id="tRec" style="color:#00ff88">R$ 0</b></div>
+<div class="card">FALTA<br><b id="tFal" style="color:#ff4444">R$ 0</b></div>
+</div>
+<br>
+<b id="tit" style="color:#ffcc00"></b>
+<select id="tipo"><option value="divida">💸 ADICIONAR DÍVIDA</option><option value="recebido">✅ RECEBI PAGAMENTO</option></select>
+<input id="desc" placeholder="O que? Ex: Serviços gerais">
+<input id="valor" type="number" inputmode="numeric" placeholder="Valor: 1570">
+<input id="data" type="date">
+<button class="verm" onclick="addDiv()">+ ADICIONAR NA DÍVIDA</button>
+<div id="lista"></div>
+</div>
+
+<div class="box">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<button class="verde" onclick="backup()">💾 BACKUP</button>
+<button class="azul" onclick="restaura()">♻️ RESTAURAR</button>
+</div>
+<button class="amarelo" onclick="compartilha()">🔗 COMPARTILHAR APP</button>
+<button class="verde" onclick="zap()">📲 CONVIDAR NO ZAP</button>
+<p style="font-size:11px;color:#aaa">Seu link: bancogratidaooficial-ops.github.io/controle-de-dividas/</p>
+<p style="font-size:11px;color:#ffcc00">PIX: 025.446.319-37 - R$ 2,99/semana</p>
+</div>
+</div>
+
+<script>
+var chave='DIVIDAS_APP_FINAL_V10';
+var db;
+try{db=JSON.parse(localStorage.getItem(chave)||'{"devs":[]}');}catch(e){db={devs:[]};}
+var sel=db.devs.length?db.devs[0].nome:null;
+
+function salvar(){
+localStorage.setItem(chave,JSON.stringify(db));
+mostrarDevs();
+mostrarLista();
+}
+
+function addDev(){
+var input=document.getElementById('novoDev');
+var nome=input.value.trim();
+if(!nome){alert('Digite o nome');return;}
+var existe=false;
+for(var i=0;i<db.devs.length;i++){
+if(db.devs[i].nome.toLowerCase()==nome.toLowerCase()){existe=true;sel=db.devs[i].nome;}
+}
+if(!existe){
+db.devs.push({nome:nome,divs:[]});
+sel=nome;
+}
+input.value='';
+salvar();
+}
+
+function selDev(n){sel=n;salvar();}
+
+function addDiv(){
+if(!sel){alert('Selecione o devedor clicando no nome dele');return;}
+var d=document.getElementById('desc').value.trim();
+var v=parseFloat(document.getElementById('valor').value);
+var dt=document.getElementById('data').value||new Date().toISOString().slice(0,10);
+var t=document.getElementById('tipo').value;
+if(!v){alert('Digite o valor');return;}
+for(var i=0;i<db.devs.length;i++){
+if(db.devs[i].nome==sel){
+db.devs[i].divs.push({id:Date.now(),desc:d||'Servico',valor:v,data:dt,tipo:t});
+}
+}
+document.getElementById('desc').value='';
+document.getElementById('valor').value='';
+salvar();
+}
+
+function mostrarDevs(){
+var div=document.getElementById('listaDevs');
+div.innerHTML='';
+for(var i=0;i<db.devs.length;i++){
+var d=db.devs[i];
+var tot=0,rec=0;
+for(var j=0;j<d.divs.length;j++){if(d.divs[j].tipo=='recebido')rec+=d.divs[j].valor;else tot+=d.divs[j].valor;}
+var el=document.createElement('div');
+el.className='devedor'+(d.nome==sel?' ativo':'');
+el.innerHTML='<span><b>'+d.nome+'</b><br><small>Falta R$ '+(tot-rec).toFixed(2)+'</small></span><span>👉</span>';
+(function(n){el.onclick=function(){selDev(n);};})(d.nome);
+div.appendChild(el);
+}
+}
+
+function mostrarLista(){
+var area=document.getElementById('area');
+if(!sel||db.devs.length==0){area.style.display='none';return;}
+area.style.display='block';
+var dev=null;
+for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome==sel)dev=db.devs[i];}
+if(!dev){sel=db.devs[0].nome;dev=db.devs[0];}
+document.getElementById('tit').innerText='📒 '+dev.nome;
+var lista=document.getElementById('lista');
+lista.innerHTML='';
+var tot=0,rec=0;
+for(var j=0;j<dev.divs.length;j++){if(dev.divs[j].tipo=='recebido')rec+=dev.divs[j].valor;else tot+=dev.divs[j].valor;}
+document.getElementById('tTot').innerText='R$ '+tot.toFixed(2);
+document.getElementById('tRec').innerText='R$ '+rec.toFixed(2);
+document.getElementById('tFal').innerText='R$ '+(tot-rec).toFixed(2);
+for(var k=dev.divs.length-1;k>=0;k--){
+var l=dev.divs[k];
+var it=document.createElement('div');
+it.className='item';
+it.style.borderLeftColor=l.tipo=='recebido'?'#00ff88':'#ffcc00';
+it.innerHTML='<span><b>'+l.desc+'</b><br><small>'+l.data+' - R$ '+l.valor+' '+(l.tipo=='recebido'?'(RECEBIDO)':'')+'</small></span><span onclick="apagar('+l.id+')" style="background:red;color:#fff;padding:5px 12px;border-radius:8px">X</span>';
+lista.appendChild(it);
+}
+}
+
+function apagar(id){
+for(var i=0;i<db.devs.length;i++){
+if(db.devs[i].nome==sel){
+var novo=[];
+for(var j=0;j<db.devs[i].divs.length;j++){if(db.devs[i].divs[j].id!=id)novo.push(db.devs[i].divs[j]);}
+db.devs[i].divs=novo;
+}
+}
+salvar();
+}
+
+function backup(){
+var b=new Blob([JSON.stringify(db)],{type:'application/json'});
+var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup-dividas-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function restaura(){
+var inp=document.createElement('input');inp.type='file';inp.accept='.json';
+inp.onchange=function(e){
+var f=e.target.files[0];var r=new FileReader();
+r.onload=function(ev){try{db=JSON.parse(ev.target.result);if(db.devs&&db.devs.length)sel=db.devs[0].nome;salvar();alert('Restaurado!');}catch(e){alert('Arquivo invalido');}};
+r.readAsText(f);
+};
+inp.click();
+}
+function compartilha(){
+var t='💰 Controle de Dividas - https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
+if(navigator.share){navigator.share({text:t});}else{navigator.clipboard.writeText(t);alert('Link copiado');}
+}
+function zap(){
+var m=encodeURIComponent('💰 App Controle de Dividas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/ PIX 025.446.319-37 R$2,99/sem');
+window.open('https://wa.me/?text='+m,'_blank');
+}
+
+mostrarDevs();
+mostrarLista();
+document.getElementById('data').valueAsDate=new Date();
+</script>
+</body>
+</html>
