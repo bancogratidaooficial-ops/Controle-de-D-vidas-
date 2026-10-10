@@ -2,315 +2,162 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Controle de Dividas - Marcos</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Dividas</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffcc00">
 <style>
-body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:12px;padding-bottom:180px}
-.sub{text-align:center;color:#aaa;margin-bottom:10px;font-size:12px}
-.cards{display:flex;gap:6px;margin-bottom:10px}
-.card{flex:1;background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:8px;text-align:center;font-size:13px}
-.saldo{color:#ffcc00;font-size:20px;font-weight:bold}
-.entradas{color:#00ff88;font-size:20px;font-weight:bold}
-.saidas{color:#ff4444;font-size:20px;font-weight:bold}
-.box{background:#151515;border:1px solid #333;border-radius:14px;padding:10px;margin-bottom:10px}
-input,select{width:100%;padding:12px;border:1px solid #444;color:#fff;background:#2a2a2a;border-radius:10px;margin:5px 0;box-sizing:border-box}
-.btn{border:none;width:100%;padding:13px;border-radius:12px;font-weight:bold;margin-top:5px;cursor:pointer}
-.btn-yellow{background:#ffcc00;color:#000}
-.btn-red{background:#ff4444;color:#fff}
-.btn-green{background:#00c853;color:#fff}
-.btn-blue{background:#2196f3;color:#fff}
-.devedor{padding:10px;border-radius:12px;margin:5px 0;background:#222;border:1px solid #333;display:flex;justify-content:space-between;align-items:center}
-.devedor.ativo{border-color:#ffcc00;background:#332e00;box-shadow:0 0 10px #ffcc00aa}
-.item{background:#222;padding:10px;border-radius:10px;margin:5px 0;display:flex;justify-content:space-between;border-left:4px solid #ffcc00}
-.item.ok{border-left-color:#00ff88;opacity:.8}
-.linha{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#btnInstalar{display:none;background:#ffcc00;color:#000;position:fixed;bottom:15px;left:12px;right:12px;padding:16px;border-radius:16px;font-weight:900;z-index:5000}
-.share-box{background:linear-gradient(135deg,#1a1a00,#332e00);border:2px solid #ffcc00;border-radius:14px;padding:12px;margin-top:10px}
+body{background:#000;color:#fff;font-family:Arial;padding:10px}
+.box{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:10px;margin:10px 0}
+input,select{width:100%;padding:12px;margin:5px 0;border-radius:10px;background:#222;color:#fff;border:1px solid #ffcc00;box-sizing:border-box}
+button{width:100%;padding:14px;border-radius:12px;font-weight:bold;border:none;margin:5px 0}
+.amarelo{background:#ffcc00;color:#000}
+.verde{background:#00c853;color:#fff}
+.azul{background:#2196f3;color:#fff}
+.verm{background:#ff4444;color:#fff}
+.devedor{padding:10px;background:#222;margin:5px 0;border-radius:10px;border:1px solid #444}
+.ativo{border-color:#ffcc00;background:#332e00}
+.item{padding:10px;background:#222;margin:5px 0;border-left:4px solid #ffcc00;border-radius:8px;display:flex;justify-content:space-between}
 </style>
 </head>
 <body>
 <h2 style="color:#ffcc00;text-align:center">💰 CONTROLE DE DÍVIDAS</h2>
-<div class="sub">Banco Gratidão - Para receber do Marcos</div>
 <div class="box">
-<input id="novoDevedor" placeholder="Nome do devedor... ex: Marcos">
-<button class="btn btn-yellow" onclick="addDevedor()">+ ADICIONAR DEVEDOR</button>
-<div id="listaDevedores"></div>
-<small style="color:#ffcc00">Dica: Clique no nome do devedor para selecionar</small>
+<input id="novoDev" placeholder="Nome: Marcos">
+<button class="amarelo" onclick="addDev()">+ ADICIONAR DEVEDOR</button>
+<div id="listaDevs"></div>
 </div>
-<div id="areaControle" style="display:none">
-<div class="cards">
-<div class="card">TOTAL<br><div id="totalDivida" class="saldo">0,00</div></div>
-<div class="card">RECEBIDO<br><div id="totalRecebido" class="entradas">0,00</div></div>
-<div class="card">FALTA<br><div id="totalFalta" class="saidas">0,00</div></div>
-</div>
+<div id="area" style="display:none">
 <div class="box">
-<b id="tituloDev" style="color:#ffcc00"></b>
-<select id="tipo" onchange="trocaTipo()">
-<option value="divida">💸 ADICIONAR DÍVIDA - O que ele deve</option>
-<option value="recebido">✅ RECEBI - Pagamento</option>
-</select>
-<input id="desc" placeholder="O que foi? Ex: Serviços gerais">
-<input id="valor" type="number" placeholder="Valor R$">
+<b id="tit"></b><br>
+<select id="tipo"><option value="divida">💸 DÍVIDA</option><option value="recebido">✅ RECEBI</option></select>
+<input id="desc" placeholder="O que? Ex: Serviços gerais">
+<input id="valor" type="number" placeholder="Valor 1570">
 <input id="data" type="date">
-<button class="btn btn-red" id="btnSalvar" onclick="salvar()">+ ADICIONAR NA DÍVIDA</button>
+<button class="verm" onclick="addDiv()">+ ADICIONAR NA DÍVIDA</button>
 <div id="lista"></div>
+<div id="totais" style="margin-top:10px;color:#ffcc00;font-weight:bold"></div>
 </div>
 <div class="box">
-<div class="linha">
-<button class="btn btn-green" onclick="fazerBackup()">💾 BACKUP</button>
-<button class="btn btn-blue" onclick="abrirRestaurar()">♻️ RESTAURAR</button>
-</div>
-<button class="btn btn-yellow" onclick="recuperaAntigo()">🔄 RECUPERAR ANTIGO</button>
-<button class="btn" style="background:#222;color:#ff4444;border:1px solid #ff4444" onclick="zerarTudo()">🗑️ ZERAR TUDO</button>
-<div class="share-box">
-<b style="color:#ffcc00">💰 GANHE INDICANDO</b><br>
-<small>Compartilhe e ganhe comissão no PIX</small>
-<div class="linha" style="margin-top:8px">
-<button class="btn btn-yellow" onclick="compartilharApp()">🔗 COMPARTILHAR APP</button>
-<button class="btn btn-green" onclick="convidarZap()">📲 CONVIDAR NO ZAP</button>
-</div>
-<p style="font-size:11px;opacity:.7;margin:6px 0 0">Seu link: bancogratidaooficial-ops.github.io/controle-de-dividas/</p>
-<p style="font-size:11px;margin:2px 0 0">PIX: 025.446.319-37 • R$ 2,99/semana</p>
-</div>
-<div id="aviso" style="display:none;background:#00c853;color:#fff;padding:10px;border-radius:8px;margin-top:8px;text-align:center"></div>
+<button class="verde" onclick="backup()">💾 BACKUP</button>
+<button class="azul" onclick="restaura()">♻️ RESTAURAR</button>
+<button class="amarelo" onclick="compartilha()">🔗 COMPARTILHAR</button>
+<button class="verde" onclick="zap()">📲 CONVIDAR ZAP</button>
+<p style="font-size:11px">PIX: 025.446.319-37 R$2,99/sem</p>
 </div>
 </div>
-<button id="btnInstalar" onclick="instalarApp()">📲 INSTALAR APP NO CELULAR</button>
 <script>
-let chave = 'plugtv_DIVIDAS_FINAL_UNICO_V2';
-let dados = { devedores: [] };
-try {
-  let s = localStorage.getItem(chave);
-  if (s) dados = JSON.parse(s);
-} catch(e) { dados = { devedores: [] }; }
-let devAtual = null;
-if (dados.devedores.length > 0) { devAtual = dados.devedores[0].nome; }
-function aviso(t){
-  let el = document.getElementById('aviso');
-  el.style.display = 'block';
-  el.innerText = t;
-  setTimeout(function(){ el.style.display='none'; }, 2500);
-}
-function save(){
-  localStorage.setItem(chave, JSON.stringify(dados));
-  renderDevs();
-  renderLista();
-}
-function addDevedor(){
-  let input = document.getElementById('novoDevedor');
-  let n = input.value.trim();
-  if (!n) { aviso('Digite o nome'); return; }
-  let existe = null;
-  for (let i=0;i<dados.devedores.length;i++){
-    if (dados.devedores[i].nome.toLowerCase() === n.toLowerCase()) existe = dados.devedores[i];
-  }
-  if (existe){
-    devAtual = existe.nome;
-    input.value = '';
-    save();
-    aviso('Devedor selecionado: ' + existe.nome);
-    return;
-  }
-  dados.devedores.push({ nome: n, dividas: [] });
-  input.value = '';
-  devAtual = n;
-  save();
-  aviso('Devedor adicionado e selecionado');
-}
-function selectDev(nome){ devAtual = nome; save(); }
-function trocaTipo(){
-  let t = document.getElementById('tipo').value;
-  let btn = document.getElementById('btnSalvar');
-  if (t === 'recebido'){
-    btn.innerText = '✅ CONFIRMAR RECEBIMENTO';
-    btn.className = 'btn btn-green';
-  } else {
-    btn.innerText = '+ ADICIONAR NA DÍVIDA';
-    btn.className = 'btn btn-red';
-  }
-}
+var chave='DIVIDAS_OK_FINAL';
+var db = JSON.parse(localStorage.getItem(chave) || '{"devs":[]}');
+var sel = db.devs.length?db.devs[0].nome:null;
+
 function salvar(){
-  if (!devAtual){
-    aviso('Clique no nome do devedor primeiro!');
-    return;
-  }
-  let desc = document.getElementById('desc').value.trim();
-  let valor = parseFloat(document.getElementById('valor').value);
-  let data = document.getElementById('data').value || new Date().toISOString().slice(0,10);
-  let tipo = document.getElementById('tipo').value;
-  if (!valor || isNaN(valor)){
-    aviso('Digite o valor');
-    return;
-  }
-  let dev = null;
-  for (let i=0;i<dados.devedores.length;i++){
-    if (dados.devedores[i].nome === devAtual) dev = dados.devedores[i];
-  }
-  if (!dev){ aviso('Devedor não encontrado'); return; }
-  dev.dividas.push({
-    id: Date.now(),
-    desc: desc || (tipo==='recebido'? 'Pagamento' : 'Serviço'),
-    valor: valor,
-    data: data,
-    tipo: tipo
-  });
-  document.getElementById('desc').value = '';
-  document.getElementById('valor').value = '';
-  save();
-  aviso('Adicionado!');
+localStorage.setItem(chave, JSON.stringify(db));
+mostrarDevs();
+mostrarLista();
 }
-function renderDevs(){
-  let div = document.getElementById('listaDevedores');
-  div.innerHTML = '';
-  for (let i=0;i<dados.devedores.length;i++){
-    let d = dados.devedores[i];
-    let total=0, receb=0;
-    for (let j=0;j<d.dividas.length;j++){
-      if (d.dividas[j].tipo==='recebido') receb+=d.dividas[j].valor;
-      else total+=d.dividas[j].valor;
-    }
-    let falta = total - receb;
-    let el = document.createElement('div');
-    el.className = 'devedor' + (d.nome===devAtual? ' ativo' : '');
-    el.innerHTML = '<span><b>' + d.nome + '</b><br><small>Falta: R$ ' + falta.toFixed(2) + '</small></span>';
-    (function(nome){
-      el.onclick = function(){ selectDev(nome); };
-    })(d.nome);
-    div.appendChild(el);
-  }
+
+function addDev(){
+var el=document.getElementById('novoDev');
+var nome=el.value.trim();
+if(!nome){alert('Digite o nome');return;}
+for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome.toLowerCase()==nome.toLowerCase()){sel=db.devs[i].nome;el.value='';salvar();return;}}
+db.devs.push({nome:nome, divs:[]});
+sel=nome;
+el.value='';
+salvar();
 }
-function renderLista(){
-  let area = document.getElementById('areaControle');
-  if (!devAtual || dados.devedores.length===0){
-    area.style.display='none';
-    return;
-  }
-  area.style.display='block';
-  let dev = null;
-  for (let i=0;i<dados.devedores.length;i++){
-    if (dados.devedores[i].nome===devAtual) dev = dados.devedores[i];
-  }
-  if (!dev){
-    devAtual = dados.devedores[0].nome;
-    dev = dados.devedores[0];
-  }
-  document.getElementById('tituloDev').innerText = '📒 ' + dev.nome;
-  let total=0, receb=0;
-  for (let j=0;j<dev.dividas.length;j++){
-    if (dev.dividas[j].tipo==='recebido') receb+=dev.dividas[j].valor;
-    else total+=dev.dividas[j].valor;
-  }
-  document.getElementById('totalDivida').innerText = 'R$ ' + total.toFixed(2);
-  document.getElementById('totalRecebido').innerText = 'R$ ' + receb.toFixed(2);
-  document.getElementById('totalFalta').innerText = 'R$ ' + (total-receb).toFixed(2);
-  let lista = document.getElementById('lista');
-  lista.innerHTML = '';
-  let rev = dev.dividas.slice().reverse();
-  for (let k=0;k<rev.length;k++){
-    let l = rev[k];
-    let item = document.createElement('div');
-    item.className = 'item' + (l.tipo==='recebido'? ' ok' : '');
-    item.innerHTML = '<div><b>' + l.desc + '</b><br><small>' + l.data + ' - R$ ' + l.valor.toFixed(2) + ' ' + (l.tipo==='recebido'?'(RECEBIDO)':'') + '</small></div><span onclick="apagar(' + l.id + ')" style="color:#ff4444;padding:8px;cursor:pointer">✕</span>';
-    lista.appendChild(item);
-  }
+
+function selDev(n){sel=n;salvar();}
+
+function addDiv(){
+if(!sel){alert('Clique no devedor primeiro');return;}
+var d=document.getElementById('desc').value.trim()||'Serviço';
+var v=parseFloat(document.getElementById('valor').value);
+var dt=document.getElementById('data').value||new Date().toISOString().slice(0,10);
+var t=document.getElementById('tipo').value;
+if(!v){alert('Digite valor');return;}
+var dev=null;
+for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome==sel)dev=db.devs[i];}
+dev.divs.push({id:Date.now(),desc:d,valor:v,data:dt,tipo:t});
+document.getElementById('desc').value='';
+document.getElementById('valor').value='';
+salvar();
 }
+
+function mostrarDevs(){
+var div=document.getElementById('listaDevs');
+div.innerHTML='';
+for(var i=0;i<db.devs.length;i++){
+var d=db.devs[i];
+var tot=0, rec=0;
+for(var j=0;j<d.divs.length;j++){if(d.divs[j].tipo=='recebido')rec+=d.divs[j].valor;else tot+=d.divs[j].valor;}
+var el=document.createElement('div');
+el.className='devedor'+(d.nome==sel?' ativo':'');
+el.innerText=d.nome+' - Falta R$ '+(tot-rec).toFixed(2);
+el.onclick=(function(n){return function(){selDev(n);};})(d.nome);
+div.appendChild(el);
+}
+}
+
+function mostrarLista(){
+var area=document.getElementById('area');
+if(!sel||db.devs.length==0){area.style.display='none';return;}
+area.style.display='block';
+var dev=null;
+for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome==sel)dev=db.devs[i];}
+if(!dev){sel=db.devs[0].nome;dev=db.devs[0];}
+document.getElementById('tit').innerText='📒 '+dev.nome;
+var lista=document.getElementById('lista');
+lista.innerHTML='';
+var tot=0,rec=0;
+for(var j=0;j<dev.divs.length;j++){if(dev.divs[j].tipo=='recebido')rec+=dev.divs[j].valor;else tot+=dev.divs[j].valor;}
+for(var k=dev.divs.length-1;k>=0;k--){
+var l=dev.divs[k];
+var it=document.createElement('div');
+it.className='item';
+it.innerHTML='<span><b>'+l.desc+'</b><br><small>'+l.data+' R$ '+l.valor+'</small></span><span onclick="apagar('+l.id+')" style="color:red">X</span>';
+lista.appendChild(it);
+}
+document.getElementById('totais').innerText='TOTAL R$ '+tot.toFixed(2)+' | RECEBIDO R$ '+rec.toFixed(2)+' | FALTA R$ '+(tot-rec).toFixed(2);
+}
+
 function apagar(id){
-  let dev = null;
-  for (let i=0;i<dados.devedores.length;i++){
-    if (dados.devedores[i].nome===devAtual) dev = dados.devedores[i];
-  }
-  if (!dev) return;
-  let novo = [];
-  for (let j=0;j<dev.dividas.length;j++){
-    if (dev.dividas[j].id!==id) novo.push(dev.dividas[j]);
-  }
-  dev.dividas = novo;
-  save();
+var dev=null;
+for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome==sel)dev=db.devs[i];}
+var novo=[];
+for(var j=0;j<dev.divs.length;j++){if(dev.divs[j].id!=id)novo.push(dev.divs[j]);}
+dev.divs=novo;
+salvar();
 }
-function fazerBackup(){
-  let blob = new Blob([JSON.stringify(dados)], {type:'application/json'});
-  let a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'backup-dividas.json';
-  a.click();
-  aviso('Backup baixado');
+
+function backup(){
+var b=new Blob([JSON.stringify(db)],{type:'application/json'});
+var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup.json';a.click();
 }
-function abrirRestaurar(){
-  let inp = document.createElement('input');
-  inp.type='file';
-  inp.accept='.json';
-  inp.onchange = function(e){
-    let f = e.target.files[0];
-    if (!f) return;
-    let r = new FileReader();
-    r.onload = function(ev){
-      try{
-        let obj = JSON.parse(ev.target.result);
-        if (obj.devedores){
-          dados = obj;
-        } else if (Array.isArray(obj)){
-          dados = { devedores: [{ nome:'Marcos', dividas: obj }] };
-        } else {
-          alert('Arquivo inválido'); return;
-        }
-        if (dados.devedores.length>0) devAtual = dados.devedores[0].nome;
-        save();
-        aviso('Restaurado!');
-      } catch(err){ alert('Arquivo inválido'); }
-    };
-    r.readAsText(f);
-  };
-  inp.click();
+
+function restaura(){
+var inp=document.createElement('input');inp.type='file';inp.accept='.json';
+inp.onchange=function(e){
+var f=e.target.files[0];var r=new FileReader();
+r.onload=function(ev){try{db=JSON.parse(ev.target.result);if(db.devs.length)sel=db.devs[0].nome;salvar();alert('Restaurado');}catch(e){alert('Erro');}};
+r.readAsText(f);
+};
+inp.click();
 }
-function recuperaAntigo(){
-  let ant = localStorage.getItem('dividas_final_v4');
-  if (!ant){ aviso('Nada antigo'); return; }
-  try{
-    let arr = JSON.parse(ant);
-    dados.devedores.push({ nome:'Recuperado', dividas: arr });
-    devAtual = 'Recuperado';
-    save();
-    aviso('Recuperado!');
-  } catch(e){ aviso('Erro ao recuperar'); }
+
+function compartilha(){
+var t='App Controle de Dividas https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
+if(navigator.share)navigator.share({text:t});else{navigator.clipboard.writeText(t);alert('Copiado');}
 }
-function zerarTudo(){
-  if (!confirm('Zerar tudo? Faça backup antes!')) return;
-  if (!confirm('Tem certeza?')) return;
-  dados = { devedores: [] };
-  devAtual = null;
-  save();
+
+function zap(){
+var m=encodeURIComponent('App Controle de Dividas https://bancogratidaooficial-ops.github.io/controle-de-dividas/ PIX 025.446.319-37');
+window.open('https://wa.me/?text='+m,'_blank');
 }
-function compartilharApp(){
-  let txt = '💰 Controle de Dívidas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
-  if (navigator.share){ navigator.share({title:'Controle', text:txt}); }
-  else { navigator.clipboard.writeText(txt); aviso('Link copiado'); }
-}
-function convidarZap(){
-  let m = encodeURIComponent('💰 Olha esse app pra controlar dívidas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/ - PIX 025.446.319-37 R$2,99/semana');
-  window.open('https://wa.me/?text=' + m, '_blank');
-}
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  deferredPrompt=e;
-  document.getElementById('btnInstalar').style.display='block';
-});
-function instalarApp(){
-  if (deferredPrompt) deferredPrompt.prompt();
-  else aviso('No Chrome: 3 pontinhos > Instalar app');
-}
-trocaTipo();
-renderDevs();
-renderLista();
-document.getElementById('data').valueAsDate = new Date();
-</script>
-<script>
-if ('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(function(r){ r.forEach(function(x){ x.unregister(); }); });
-  setTimeout(function(){ navigator.serviceWorker.register('sw.js?v=' + Date.now()); }, 500);
-}
+
+mostrarDevs();
+mostrarLista();
+document.getElementById('data').valueAsDate=new Date();
 </script>
 </body>
 </html>
