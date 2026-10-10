@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>App - Controle de Dívidas</title><link rel="manifest" href="manifest.json">
+<style>body{background:#000;color:#fff;font-family:Arial;padding:12px} .gold{color:#ffcc00}
+.card{background:#111;border:1px solid #332a00;border-radius:14px;padding:12px;margin:10px auto;max-width:420px}
+input{width:100%;padding:12px;border-radius:10px;border:2px solid #ffcc00;background:#000;color:#fff;margin:5px 0}
+.btn{background:#ffcc00;color:#000;border:none;padding:13px;width:100%;border-radius:12px;font-weight:900;margin:6px 0}
+.item{display:flex;justify-content:space-between;background:#0d0d0d;padding:10px;border-radius:10px;margin:6px 0;border-left:3px solid #ffcc00}
+#bloqueio{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:center;justify-content:center;padding:20px;z-index:999}
+</style></head><body>
+<div class="card">
+<h2 class="gold">💰 CONTROLE DE DÍVIDAS</h2>
+<p id="statusTrial" style="font-size:12px"></p>
+<input id="nome" placeholder="Nome de quem deve">
+<input id="valor" type="number" placeholder="Valor R$">
+<input id="data" type="date">
+<button class="btn" onclick="add()">+ ADICIONAR DÍVIDA</button>
+<div id="lista"></div>
+<h3 class="gold">Total a receber: R$ <span id="total">0</span></h3>
+<button class="btn" style="background:transparent;border:2px solid #ffcc00;color:#ffcc00" onclick="compartilhar()">🔗 COMPARTILHAR APP</button>
+<p style="font-size:11px;margin-top:10px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
+</div>
+
+<div id="bloqueio"><div class="card" style="border:2px solid #ffcc00;max-width:380px">
+<h2 class="gold">🔒 TESTE GRÁTIS ACABOU</h2>
+<p>Seu teste de 3 dias terminou. Faça o PIX de R$ 2,99 e digite o código GRATI-XXXX que eu te mando.</p>
+<input id="cod" placeholder="Digite GRATI-XXXX">
+<button class="btn" onclick="liberar()">DESBLOQUEAR</button>
+<a href="https://wa.me/5541999999999?text=Quero%20liberar%20meu%20app%20R%24%202,99" style="color:#25D366;display:block;margin-top:10px">Falar no WhatsApp</a>
+<p id="msgErro" style="color:red;font-size:12px"></p>
+</div></div>
+
+<script>
+let dividas = JSON.parse(localStorage.getItem('dividas')||'[]');
+let inicio = localStorage.getItem('inicio') || Date.now();
+if(!localStorage.getItem('inicio')) localStorage.setItem('inicio',inicio);
+let dias = Math.floor((Date.now()-inicio)/86400000);
+
+function checkBloqueio(){
+ let liberadoAte = localStorage.getItem('liberadoAte')||0;
+ if(Date.now() > liberadoAte && dias>=3){ document.getElementById('bloqueio').style.display='flex'; return true; }
+ document.getElementById('statusTrial').innerText = Date.now()<liberadoAte? '✅ LIBERADO até '+new Date(parseInt(liberadoAte)).toLocaleDateString() : `⏳ Teste: dia ${dias+1} de 3 - grátis`;
+ return false;
+}
+function add(){
+ if(checkBloqueio()) return;
+ let n=document.getElementById('nome').value, v=parseFloat(document.getElementById('valor').value), d=document.getElementById('data').value;
+ if(!n||!v) return alert('Preencha nome e valor');
+ dividas.push({n,v,d,ok:false}); localStorage.setItem('dividas',JSON.stringify(dividas)); render();
+ document.getElementById('nome').value=''; document.getElementById('valor').value='';
+}
+function render(){
+ let html='', total=0;
+ dividas.forEach((o,i)=>{ total+=o.ok?0:o.v; html+=`<div class=item><div><b>${o.n}</b><br><small>R$ ${o.v} - ${o.d||''}</small></div><div><input type=checkbox ${o.ok?'checked':''} onchange="toggle(${i})"><button onclick="del(${i})" style="background:red;color:#fff;border:none;border-radius:6px;padding:4px 8px;margin-left:6px">X</button></div></div>` });
+ document.getElementById('lista').innerHTML=html||'<p style=opacity:.5>Sem dívidas</p>';
+ document.getElementById('total').innerText=total.toFixed(2);
+}
+function toggle(i){ dividas[i].ok=!dividas[i].ok; localStorage.setItem('dividas',JSON.stringify(dividas)); render(); }
+function del(i){ dividas.splice(i,1); localStorage.setItem('dividas',JSON.stringify(dividas)); render(); }
+function liberar(){
+ let c=document.getElementById('cod').value.trim().toUpperCase();
+ if(!c.startsWith('GRATI-')||c.length!=10){ document.getElementById('msgErro').innerText='Código inválido. Formato GRATI-XXXX'; return; }
+ // libera 7 dias (1 semana por R$ 2,99)
+ let ate = Date.now() + 7*86400000;
+ localStorage.setItem('liberadoAte', ate);
+ localStorage.setItem('ultimoCod', c);
+ document.getElementById('bloqueio').style.display='none'; checkBloqueio();
+}
+function compartilhar(){ let u=location.href.replace('app.html',''); if(navigator.share){navigator.share({title:'Controle Dívidas',url:u})} else {navigator.clipboard.writeText(u); alert('Link copiado');} }
+render(); checkBloqueio();
+</script>
+</body></html>
