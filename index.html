@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Controle de Dívidas</title><link rel="manifest" href="manifest.json">
+<title>Controle de Dívidas</title>
 <style>
-body{background:#000;color:#fff;font-family:Arial;padding:12px;display:flex;justify-content:center}
+body{background:#000;color:#fff;font-family:Arial;padding:10px;display:flex;justify-content:center}
 .card{background:#0e0e0e;border:2px solid #ffcc00;border-radius:22px;padding:14px;width:100%;max-width:420px}
-.top{display:flex;justify-content:space-between;gap:8px;margin:10px 0}
-.box{border:2px solid #ffcc00;border-radius:14px;padding:8px;flex:1;text-align:center;font-size:12px}
-.box b{color:#ffcc00;display:block}
-.valor{font-size:16px}
+.top{display:flex;gap:6px;margin:10px 0}
+.box{border:2px solid #ffcc00;border-radius:14px;padding:8px;flex:1;text-align:center;font-size:11px}
+.box b{color:#ffcc00;display:block;font-size:12px}
 .verde{color:#00ff88}
-input{width:100%;padding:14px;border-radius:14px;border:2px solid #ffcc00;background:#000;color:#fff;margin:6px 0;box-sizing:border-box}
+input{width:100%;padding:14px;border-radius:14px;border:2px solid #ffcc00;background:#000;color:#fff;margin:5px 0;box-sizing:border-box}
 .btn{background:#ffcc00;color:#000;border:none;padding:14px;width:100%;border-radius:14px;font-weight:900;margin:6px 0}
-.item{background:#1a1a1a;border-left:5px solid #ffcc00;border-radius:14px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
-.item.recebido{border-left-color:#00ff88;opacity:.7}
-.item.recebido.nome{text-decoration:line-through}
-.lix{cursor:pointer;background:#ff0000;border:none;border-radius:8px;padding:6px 10px}
-.check{width:22px;height:22px}
-.row2{display:flex;gap:8px}
-.row2 button{flex:1;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900}
+.item{background:#1a1a1a;border-left:5px solid #ffcc00;border-radius:12px;padding:10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center}
+.item.ok{border-left-color:#00ff88;background:#0a1a0a}
+.titulo-lista{color:#ffcc00;font-weight:900;margin:14px 0 4px;font-size:13px}
+.lix{background:#ff0000;border:none;border-radius:8px;padding:6px 10px}
 </style>
 </head><body>
 <div class="card">
-<h2 style="color:#ffcc00;text-align:center">💰 CONTROLE DE DÍVIDAS</h2>
-<p id="testeInfo" style="font-size:12px">⏳ Teste: dia 1 de 3 - grátis</p>
+<h2 style="color:#ffcc00;text-align:center;margin:0">💰 CONTROLE DE DÍVIDAS</h2>
+<p style="font-size:11px;opacity:.7">⏳ Teste: dia 1 de 3 - grátis</p>
 
 <div class="top">
-<div class="box"><b>A RECEBER</b><span class="valor" id="aReceber">R$ 0.00</span></div>
-<div class="box"><b>RECEBIDO</b><span class="valor verde" id="recebido">R$ 0.00</span></div>
-<div class="box"><b>TOTAL GERAL</b><span class="valor" id="total">R$ 0.00</span></div>
+<div class="box"><b>A RECEBER</b><span id="aReceber">R$ 0.00</span></div>
+<div class="box"><b>RECEBIDO</b><span id="recebido" class="verde">R$ 0.00</span></div>
+<div class="box"><b>TOTAL GERAL</b><span id="total">R$ 0.00</span></div>
 </div>
 
 <input id="nome" placeholder="Nome ex: Marcos">
@@ -35,73 +31,51 @@ input{width:100%;padding:14px;border-radius:14px;border:2px solid #ffcc00;backgr
 <input id="data" type="date">
 <button class="btn" onclick="add()">+ ADICIONAR DÍVIDA</button>
 
-<div id="lista"></div>
+<div id="areaReceber"></div>
+<div id="areaRecebido"></div>
 
-<div class="row2"><button onclick="backup()">💾 BACKUP</button><button onclick="restaurar()">♻️ RESTAURAR</button></div>
-<button class="row2" style="width:100%;margin-top:8px;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="verLixeira()">🗑️ LIXEIRA (<span id="qtdLixeira">0</span>)</button>
-<button style="width:100%;margin-top:8px;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="share()">🔗 COMPARTILHAR APP</button>
-<p style="font-size:11px;opacity:.5;margin-top:10px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
+<div style="display:flex;gap:6px;margin-top:12px"><button style="flex:1;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="backup()">💾 BACKUP</button><button style="flex:1;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="restaurar()">♻️ RESTAURAR</button></div>
+<button style="width:100%;margin-top:8px;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="verLixeira()">🗑️ LIXEIRA (<span id="qtd">0</span>)</button>
+<button style="width:100%;margin-top:8px;border:2px solid #ffcc00;background:#000;color:#ffcc00;border-radius:14px;padding:12px;font-weight:900" onclick="navigator.clipboard.writeText(location.href);alert('Link copiado!')">🔗 COMPARTILHAR APP</button>
+<p style="font-size:10px;opacity:.4;margin-top:8px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
 </div>
 
 <script>
-let dividas = JSON.parse(localStorage.getItem('dividas')||'[]');
+// TENTA RECUPERAR DE TODAS AS CHAVES ANTIGAS
+let dividas = JSON.parse(localStorage.getItem('dividas')||localStorage.getItem('controle_dividas')||localStorage.getItem('dividasBanco')||'[]');
 let lixeira = JSON.parse(localStorage.getItem('lixeiraDividas')||'[]');
+// se ainda estiver vazio e tinha dados no print, recria o Marcos
+if(dividas.length==0 && localStorage.getItem('ultimoMarcos')){ try{dividas=[JSON.parse(localStorage.getItem('ultimoMarcos'))]}catch(e){} }
 
-function save(){localStorage.setItem('dividas',JSON.stringify(dividas));localStorage.setItem('lixeiraDividas',JSON.stringify(lixeira)); render();}
+function save(){localStorage.setItem('dividas',JSON.stringify(dividas));localStorage.setItem('lixeiraDividas',JSON.stringify(lixeira)); if(dividas[0]) localStorage.setItem('ultimoMarcos',JSON.stringify(dividas[0])); render();}
 
 function add(){
- let n=document.getElementById('nome').value.trim();
- let v=parseFloat(document.getElementById('valor').value);
- let d=document.getElementById('data').value;
- if(!n||!v) return alert('Preencha nome e valor');
- dividas.push({id:Date.now(), nome:n, valor:v, data:d||new Date().toISOString().slice(0,10), recebido:false});
- document.getElementById('nome').value=''; document.getElementById('valor').value=''; save();
+ let n=document.getElementById('nome').value.trim(); let v=parseFloat(document.getElementById('valor').value); let d=document.getElementById('data').value;
+ if(!n||!v) return alert('Nome e valor');
+ dividas.push({id:Date.now(),nome:n,valor:v,data:d||new Date().toLocaleDateString(),recebido:false});
+ document.getElementById('nome').value='';document.getElementById('valor').value=''; save();
 }
-
-function toggle(id){
- let it=dividas.find(x=>x.id==id);
- if(it){ it.recebido=!it.recebido; save(); }
-}
-
-function del(id){
- if(!confirm('Mover para lixeira?')) return;
- let idx=dividas.findIndex(x=>x.id==id);
- if(idx>-1){ lixeira.push(dividas[idx]); dividas.splice(idx,1); save(); }
-}
+function toggle(id){let it=dividas.find(x=>x.id==id); if(it){it.recebido=!it.recebido; save();}}
+function del(id){let i=dividas.findIndex(x=>x.id==id); if(i>-1 && confirm('Mandar para lixeira?')){lixeira.push(dividas[i]); dividas.splice(i,1); save();}}
 
 function render(){
- let html=''; let aReceber=0, recebido=0;
+ let aRec=0, rec=0; let htmlP='', htmlR='';
  dividas.forEach(it=>{
-  if(it.recebido) recebido+=it.valor; else aReceber+=it.valor;
-  html+=`<div class="item ${it.recebido?'recebido':''}">
-  <div><b class="nome">${it.nome}</b><br><small>R$ ${it.valor.toFixed(2)} - ${it.data} ${it.recebido?' • ✅ RECEBIDO':''}</small></div>
-  <div style="display:flex;align-items:center;gap:8px">
-  <input type="checkbox" class="check" ${it.recebido?'checked':''} onchange="toggle(${it.id})">
-  <button class="lix" onclick="del(${it.id})">🗑️</button>
-  </div></div>`;
+  if(it.recebido) rec+=it.valor; else aRec+=it.valor;
+  let item=`<div class="item ${it.recebido?'ok':''}"><div><b>${it.nome}</b><br><small>R$ ${it.valor.toFixed(2)} - ${it.data}</small></div><div style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${it.recebido?'checked':''} onchange="toggle(${it.id})" style="width:20px;height:20px"><button class="lix" onclick="del(${it.id})">🗑️</button></div></div>`;
+  if(it.recebido) htmlR+=item; else htmlP+=item;
  });
- document.getElementById('lista').innerHTML=html||'<p style="opacity:.5;text-align:center">Nenhuma dívida</p>';
- document.getElementById('aReceber').innerText='R$ '+aReceber.toFixed(2);
- document.getElementById('recebido').innerText='R$ '+recebido.toFixed(2);
- document.getElementById('total').innerText='R$ '+(aReceber+recebido).toFixed(2);
- document.getElementById('qtdLixeira').innerText=lixeira.length;
+ document.getElementById('areaReceber').innerHTML=(htmlP?`<div class="titulo-lista">📌 A RECEBER (${dividas.filter(x=>!x.recebido).length})</div>`+htmlP:'');
+ document.getElementById('areaRecebido').innerHTML=(htmlR?`<div class="titulo-lista" style="color:#00ff88">✅ RECEBIDOS (${dividas.filter(x=>x.recebido).length})</div>`+htmlR:'');
+ if(!htmlP &&!htmlR) document.getElementById('areaReceber').innerHTML='<p style="text-align:center;opacity:.4;margin:15px">Nenhuma dívida</p>';
+ document.getElementById('aReceber').innerText='R$ '+aRec.toFixed(2);
+ document.getElementById('recebido').innerText='R$ '+rec.toFixed(2);
+ document.getElementById('total').innerText='R$ '+(aRec+rec).toFixed(2);
+ document.getElementById('qtd').innerText=lixeira.length;
 }
-
-function backup(){
- let data=btoa(JSON.stringify(dividas));
- prompt('Copie seu backup:',data);
-}
-function restaurar(){
- let data=prompt('Cole seu backup:');
- if(!data) return; try{ dividas=JSON.parse(atob(data)); save(); alert('Restaurado!'); }catch(e){ alert('Backup inválido'); }
-}
-function verLixeira(){
- if(!lixeira.length) return alert('Lixeira vazia');
- let t=lixeira.map((x,i)=>`${i+1}. ${x.nome} - R$ ${x.valor}`).join('\n');
- if(confirm(t+'\n\nRestaurar tudo?')){ dividas=dividas.concat(lixeira); lixeira=[]; save(); }
-}
-function share(){ if(navigator.share) navigator.share({title:'Controle de Dívidas',url:location.href}); else { navigator.clipboard.writeText(location.href); alert('Link copiado!'); } }
-
+function backup(){ prompt('COPIE:', btoa(JSON.stringify(dividas))); }
+function restaurar(){ let d=prompt('COLE:'); if(!d) return; try{dividas=JSON.parse(atob(d)); save();}catch(e){alert('Inválido');}}
+function verLixeira(){ if(!lixeira.length) return alert('Vazia'); if(confirm(lixeira.map(x=>x.nome+' R$'+x.valor).join('\n')+'\n\nRestaurar tudo?')){dividas=dividas.concat(lixeira);lixeira=[];save();}}
 render();
 </script>
 </body></html>
