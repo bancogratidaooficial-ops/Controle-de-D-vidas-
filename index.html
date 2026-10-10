@@ -125,7 +125,7 @@ renderDevs(); renderLanc();
 document.getElementById('data').valueAsDate=new Date();
 </script>
 
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>{r.forEach(x=>x.unregister())}); setTimeout(()=>{navigator.serviceWorker.register('sw.js?v='+Date.now())},500)}</script>
 
 <!-- TELA DE BLOQUEIO -->
 <div id="tela-bloqueio" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;text-align:center">
