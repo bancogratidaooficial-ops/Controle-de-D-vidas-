@@ -124,7 +124,28 @@ window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); promptIn
 function instalar(){ if(promptInst) promptInst.prompt(); else alert('No Chrome: 3 pontinhos > Instalar app'); }
 
 render();
-document.getElementById('data').valueAsDate=new Date();
+function restaurarBackup(){
+  let input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e){
+    let f = e.target.files[0]; if(!f) return;
+    let r = new FileReader();
+    r.onload = function(ev){
+      try{
+        let imp = JSON.parse(ev.target.result);
+        if(Array.isArray(imp)){
+          dados = imp;
+          localStorage.setItem(chave, JSON.stringify(dados));
+          render();
+          alert('✅ Restaurado com sucesso! '+imp.length+' registros');
+        } else { alert('Arquivo inválido'); }
+      }catch(err){ alert('Arquivo inválido'); }
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
 </script>
 
 <script>
