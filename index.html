@@ -48,7 +48,11 @@ input,select{width:100%;padding:12px;border:1px solid #ffcc00;color:#fff;backgro
 
 <button class="btn" style="background:#000;border:1px solid #ffcc00;color:#ffcc00" onclick="compartilhar()">🔗 COMPARTILHAR APP</button>
 <button class="btn btn-green" onclick="convidar()">📲 CONVIDAR NO ZAP</button>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
 <button class="btn btn-blue" onclick="backup()">💾 BACKUP</button>
+<button class="btn" style="background:#222;border:1px solid #2196f3;color:#2196f3" onclick="document.getElementById('file').click()">♻️ RESTAURAR</button>
+</div>
+<input type="file" id="file" accept=".json" style="display:none">
 
 <p style="font-size:12px;margin-top:8px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
 </div>
