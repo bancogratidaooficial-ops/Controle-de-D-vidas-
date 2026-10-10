@@ -1,72 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>App - Controle de Dívidas</title><link rel="manifest" href="manifest.json">
-<style>body{background:#000;color:#fff;font-family:Arial;padding:12px} .gold{color:#ffcc00}
-.card{background:#111;border:1px solid #332a00;border-radius:14px;padding:12px;margin:10px auto;max-width:420px}
-input{width:100%;padding:12px;border-radius:10px;border:2px solid #ffcc00;background:#000;color:#fff;margin:5px 0}
-.btn{background:#ffcc00;color:#000;border:none;padding:13px;width:100%;border-radius:12px;font-weight:900;margin:6px 0}
-.item{display:flex;justify-content:space-between;background:#0d0d0d;padding:10px;border-radius:10px;margin:6px 0;border-left:3px solid #ffcc00}
-#bloqueio{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:center;justify-content:center;padding:20px;z-index:999}
-</style></head><body>
-<div class="card">
-<h2 class="gold">💰 CONTROLE DE DÍVIDAS</h2>
-<p id="statusTrial" style="font-size:12px"></p>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Dividas</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcc00">
+<style>
+body{margin:0;background:#0f0f0f;color:#fff;font-family:Arial;padding:12px;padding-bottom:180px}
+h1{color:#ffcc00;text-align:center;margin:10px 0}
+.box{background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:12px;margin-bottom:12px}
+input,select{width:100%;padding:12px;border:1px solid #ffcc00;color:#fff;background:#000;border-radius:10px;margin:6px 0;box-sizing:border-box}
+.btn{border:none;width:100%;padding:13px;border-radius:12px;font-weight:bold;margin-top:6px;cursor:pointer}
+.btn-yellow{background:#ffcc00;color:#000}
+.btn-green{background:#00c853;color:#fff}
+.btn-blue{background:#2196f3;color:#fff}
+.cards{display:flex;gap:6px;margin-bottom:10px}
+.card{flex:1;background:#1e1e1e;border:1px solid #333;border-radius:10px;padding:8px;text-align:center}
+.item{background:#222;padding:10px;border-radius:10px;margin:6px 0;display:flex;justify-content:space-between;border-left:4px solid #ffcc00}
+.item-ok{border-left-color:#00ff88;opacity:0.8}
+#btnInstalar{display:none;background:#ffcc00;color:#000;position:fixed;bottom:15px;left:12px;right:12px;padding:16px;border-radius:16px;font-weight:900;z-index:5000}
+</style>
+</head>
+<body>
+
+<h1>💰 CONTROLE DE DÍVIDAS</h1>
+<div style="text-align:center;color:#aaa;margin-bottom:10px;font-size:12px">Teste: dia 1 de 3 - grátis</div>
+
+<div class="box">
 <input id="nome" placeholder="Nome de quem deve">
+<select id="tipo">
+<option value="divida">💸 ADICIONAR DIVIDA</option>
+<option value="recebido">✅ RECEBI PAGAMENTO</option>
+</select>
 <input id="valor" type="number" placeholder="Valor R$">
 <input id="data" type="date">
-<button class="btn" onclick="add()">+ ADICIONAR DÍVIDA</button>
+<button class="btn btn-yellow" onclick="add()">+ ADICIONAR DÍVIDA</button>
 <div id="lista"></div>
-<h3 class="gold">Total a receber: R$ <span id="total">0</span></h3>
-<button class="btn" style="background:transparent;border:2px solid #ffcc00;color:#ffcc00" onclick="compartilhar()">🔗 COMPARTILHAR APP</button>
-<p style="font-size:11px;margin-top:10px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
+
+<div class="cards" style="margin-top:12px">
+<div class="card">TOTAL<br><b id="tTotal" style="color:#ffcc00">R$ 0</b></div>
+<div class="card">RECEBIDO<br><b id="tReceb" style="color:#00ff88">R$ 0</b></div>
+<div class="card">FALTA<br><b id="tFalta" style="color:#ff4444">R$ 0</b></div>
 </div>
 
-<div id="bloqueio"><div class="card" style="border:2px solid #ffcc00;max-width:380px">
-<h2 class="gold">🔒 TESTE GRÁTIS ACABOU</h2>
-<p>Seu teste de 3 dias terminou. Faça o PIX de R$ 2,99 e digite o código GRATI-XXXX que eu te mando.</p>
-<input id="cod" placeholder="Digite GRATI-XXXX">
-<button class="btn" onclick="liberar()">DESBLOQUEAR</button>
-<a href="https://wa.me/5541999999999?text=Quero%20liberar%20meu%20app%20R%24%202,99" style="color:#25D366;display:block;margin-top:10px">Falar no WhatsApp</a>
-<p id="msgErro" style="color:red;font-size:12px"></p>
-</div></div>
+<p style="color:#ffcc00;font-weight:bold" id="totalGeral">Total a receber: R$ 0.00</p>
+
+<button class="btn" style="background:#000;border:1px solid #ffcc00;color:#ffcc00" onclick="compartilhar()">🔗 COMPARTILHAR APP</button>
+<button class="btn btn-green" onclick="convidar()">📲 CONVIDAR NO ZAP</button>
+<button class="btn btn-blue" onclick="backup()">💾 BACKUP</button>
+
+<p style="font-size:12px;margin-top:8px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
+</div>
+
+<button id="btnInstalar" onclick="instalar()">📲 INSTALAR APP NO CELULAR</button>
 
 <script>
-let dividas = JSON.parse(localStorage.getItem('dividas')||'[]');
-let inicio = localStorage.getItem('inicio') || Date.now();
-if(!localStorage.getItem('inicio')) localStorage.setItem('inicio',inicio);
-let dias = Math.floor((Date.now()-inicio)/86400000);
+let chave='dividas_final_v4';
+let dados = JSON.parse(localStorage.getItem(chave) || '[]');
 
-function checkBloqueio(){
- let liberadoAte = localStorage.getItem('liberadoAte')||0;
- if(Date.now() > liberadoAte && dias>=3){ document.getElementById('bloqueio').style.display='flex'; return true; }
- document.getElementById('statusTrial').innerText = Date.now()<liberadoAte? '✅ LIBERADO até '+new Date(parseInt(liberadoAte)).toLocaleDateString() : `⏳ Teste: dia ${dias+1} de 3 - grátis`;
- return false;
+function save(){
+ localStorage.setItem(chave, JSON.stringify(dados));
+ render();
 }
+
 function add(){
- if(checkBloqueio()) return;
- let n=document.getElementById('nome').value, v=parseFloat(document.getElementById('valor').value), d=document.getElementById('data').value;
- if(!n||!v) return alert('Preencha nome e valor');
- dividas.push({n,v,d,ok:false}); localStorage.setItem('dividas',JSON.stringify(dividas)); render();
- document.getElementById('nome').value=''; document.getElementById('valor').value='';
+ let nome = document.getElementById('nome').value.trim();
+ let valor = parseFloat(document.getElementById('valor').value);
+ let data = document.getElementById('data').value || new Date().toISOString().slice(0,10);
+ let tipo = document.getElementById('tipo').value;
+ if(!nome || !valor){ alert('Preencha nome e valor'); return; }
+ dados.push({id:Date.now(), nome:nome, valor:valor, data:data, tipo:tipo});
+ document.getElementById('nome').value='';
+ document.getElementById('valor').value='';
+ save();
 }
+
 function render(){
- let html='', total=0;
- dividas.forEach((o,i)=>{ total+=o.ok?0:o.v; html+=`<div class=item><div><b>${o.n}</b><br><small>R$ ${o.v} - ${o.d||''}</small></div><div><input type=checkbox ${o.ok?'checked':''} onchange="toggle(${i})"><button onclick="del(${i})" style="background:red;color:#fff;border:none;border-radius:6px;padding:4px 8px;margin-left:6px">X</button></div></div>` });
- document.getElementById('lista').innerHTML=html||'<p style=opacity:.5>Sem dívidas</p>';
- document.getElementById('total').innerText=total.toFixed(2);
+ let lista = document.getElementById('lista');
+ lista.innerHTML='';
+ let total=0, receb=0;
+ dados.forEach(d=>{
+  if(d.tipo=='recebido') receb+=d.valor; else total+=d.valor;
+  let div=document.createElement('div');
+  div.className = d.tipo=='recebido' ? 'item item-ok' : 'item';
+  div.innerHTML = '<div><b>'+d.nome+'</b><br><small>R$ '+d.valor+' - '+d.data+' '+(d.tipo=='recebido' ? '(RECEBIDO)' : '')+'</small></div><div><span onclick="apagar('+d.id+')" style="background:red;color:#fff;padding:5px 10px;border-radius:8px;cursor:pointer">X</span></div>';
+  lista.appendChild(div);
+ });
+ document.getElementById('tTotal').innerText = 'R$ '+total.toFixed(2);
+ document.getElementById('tReceb').innerText = 'R$ '+receb.toFixed(2);
+ document.getElementById('tFalta').innerText = 'R$ '+(total-receb).toFixed(2);
+ document.getElementById('totalGeral').innerText = 'Total a receber: R$ '+(total-receb).toFixed(2);
 }
-function toggle(i){ dividas[i].ok=!dividas[i].ok; localStorage.setItem('dividas',JSON.stringify(dividas)); render(); }
-function del(i){ dividas.splice(i,1); localStorage.setItem('dividas',JSON.stringify(dividas)); render(); }
-function liberar(){
- let c=document.getElementById('cod').value.trim().toUpperCase();
- if(!c.startsWith('GRATI-')||c.length!=10){ document.getElementById('msgErro').innerText='Código inválido. Formato GRATI-XXXX'; return; }
- // libera 7 dias (1 semana por R$ 2,99)
- let ate = Date.now() + 7*86400000;
- localStorage.setItem('liberadoAte', ate);
- localStorage.setItem('ultimoCod', c);
- document.getElementById('bloqueio').style.display='none'; checkBloqueio();
+
+function apagar(id){
+ if(!confirm('Apagar?')) return;
+ dados = dados.filter(d=>d.id!=id);
+ save();
 }
-function compartilhar(){ let u=location.href.replace('app.html',''); if(navigator.share){navigator.share({title:'Controle Dívidas',url:u})} else {navigator.clipboard.writeText(u); alert('Link copiado');} }
-render(); checkBloqueio();
+
+function backup(){
+ let blob=new Blob([JSON.stringify(dados)],{type:'application/json'});
+ let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='backup.json'; a.click();
+}
+
+function compartilhar(){
+ let t='Controle de Dividas - App que uso pra cobrar! https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
+ if(navigator.share){ navigator.share({title:'Dividas', text:t}); }
+ else{ navigator.clipboard.writeText(t); alert('Link copiado!'); }
+}
+
+function convidar(){
+ let m=encodeURIComponent('Olha esse app pra controlar dividas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/ - PIX 025.446.319-37 R$2,99/semana');
+ window.open('https://wa.me/?text='+m,'_blank');
+}
+
+let promptInst=null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); promptInst=e; document.getElementById('btnInstalar').style.display='block'; });
+function instalar(){ if(promptInst) promptInst.prompt(); else alert('No Chrome: 3 pontinhos > Instalar app'); }
+
+render();
+document.getElementById('data').valueAsDate=new Date();
 </script>
-</body></html>
+
+<script>
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.getRegistrations().then(r=> r.forEach(x=> x.unregister()));
+ setTimeout(()=> navigator.serviceWorker.register('sw.js?v='+Date.now()), 500);
+}
+</script>
+
+</body>
+</html>
