@@ -3,186 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Controle de Dividas</title>
+<title>Controle de Dívidas - Marcos</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffcc00">
 <style>
-body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:12px;padding-bottom:150px}
-h2{color:#ffcc00;text-align:center;margin:5px}
+body{margin:0;background:#000;color:#fff;font-family:Arial;padding:12px;padding-bottom:160px}
 .box{background:#151515;border:1px solid #333;border-radius:14px;padding:12px;margin:10px 0}
 input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;background:#222;color:#fff;border:1px solid #ffcc00;box-sizing:border-box;font-size:16px}
-button{width:100%;padding:14px;border-radius:12px;font-weight:bold;border:none;margin:6px 0;font-size:15px}
-.amarelo{background:#ffcc00;color:#000}
-.verde{background:#00c853;color:#fff}
-.azul{background:#2196f3;color:#fff}
-.verm{background:#ff4444;color:#fff}
-.devedor{padding:12px;background:#222;margin:6px 0;border-radius:10px;border:2px solid #444;display:flex;justify-content:space-between}
-.ativo{border-color:#ffcc00!important;background:#332e00!important}
+.btn{width:100%;padding:14px;border-radius:12px;font-weight:bold;border:none;margin:6px 0;cursor:pointer;font-size:15px}
+.btn-y{background:#ffcc00;color:#000}
+.btn-g{background:#00c853;color:#fff}
+.btn-b{background:#2196f3;color:#fff}
+.btn-r{background:#ff4444;color:#fff}
+.devedor{padding:12px;background:#222;margin:6px 0;border-radius:10px;border:2px solid #444;cursor:pointer}
+.devedor.ativo{border-color:#ffcc00;background:#332e00}
 .item{padding:10px;background:#222;margin:6px 0;border-left:4px solid #ffcc00;border-radius:8px;display:flex;justify-content:space-between}
+.cards{display:flex;gap:6px}
 .card{flex:1;background:#1e1e1e;border:1px solid #333;border-radius:10px;padding:8px;text-align:center}
+.paywall{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;overflow:auto;padding:15px}
 </style>
 </head>
 <body>
-<h2>💰 CONTROLE DE DÍVIDAS</h2>
+
+<div id="paywall" class="paywall">
+<div style="border:2px solid #ffcc00;border-radius:14px;padding:12px;text-align:center;margin-bottom:15px">
+<b style="color:#ffcc00;font-size:22px">APENAS R$ 2,99 POR SEMANA</b><br><small>cancele quando quiser • sem taxas escondidas</small>
+</div>
+<div style="text-align:center;margin:15px 0">
+<span style="background:#ffcc00;color:#000;border-radius:50%;width:90px;height:90px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;text-align:center">3 DIAS<br>GRÁTIS<br>PARA TESTAR</span>
+<span style="margin-left:10px;font-weight:bold">Teste grátis agora.<br>Sem compromisso.</span>
+</div>
+<h3 style="color:#ffcc00;text-align:center">3 ETAPAS SIMPLES</h3>
+<div class="box">1 • Cadastre quem deve<br><small>Adicione contatos e defina o devedor em segundos</small></div>
+<div class="box">2 • Registre valores<br><small>Informe valores, datas e juros de forma fácil</small></div>
+<div class="box">3 • Controle o que falta receber<br><small>Acompanhe pagamentos e veja o que falta receber</small></div>
+<button class="btn btn-y" onclick="iniciarTeste()">COMEÇAR TESTE GRÁTIS - 3 DIAS</button>
+<button class="btn" style="background:#000;border:2px solid #ffcc00;color:#ffcc00" onclick="compartilharApp()">🔗 COMPARTILHAR APP</button>
+<button class="btn" style="background:#000;border:2px solid #ffcc00;color:#ffcc00">👥 CONVIDAR MEMBROS</button>
+<button class="btn" style="background:#000;border:2px solid #ffcc00;color:#ffcc00">❓ COMO USAR - TUTORIAL</button>
+</div>
+
+<h2 style="color:#ffcc00;text-align:center">💰 CONTROLE DE DÍVIDAS</h2>
 <p style="text-align:center;color:#aaa;font-size:12px">Banco Gratidão - PIX 025.446.319-37</p>
 
 <div class="box">
-<input id="novoDev" placeholder="Nome do devedor: Ex: Marcos">
-<button class="amarelo" onclick="addDev()">+ ADICIONAR DEVEDOR</button>
-<div id="listaDevs"></div>
+<input id="novoDevedor" placeholder="Nome do devedor: Ex: Marcos">
+<button class="btn btn-y" onclick="addDevedor()">+ ADICIONAR DEVEDOR</button>
+<div id="listaDevedores"></div>
 </div>
 
-<div id="area" style="display:none">
-<div class="box">
-<div style="display:flex;gap:6px">
-<div class="card">TOTAL<br><b id="tTot" style="color:#ffcc00">R$ 0</b></div>
-<div class="card">RECEBIDO<br><b id="tRec" style="color:#00ff88">R$ 0</b></div>
-<div class="card">FALTA<br><b id="tFal" style="color:#ff4444">R$ 0</b></div>
+<div id="areaControle" style="display:none">
+<div class="cards">
+<div class="card">TOTAL<br><b id="totalDivida" style="color:#ffcc00">R$ 0</b></div>
+<div class="card">RECEBIDO<br><b id="totalRecebido" style="color:#00ff88">R$ 0</b></div>
+<div class="card">FALTA<br><b id="totalFalta" style="color:#ff4444">R$ 0</b></div>
 </div>
-<br>
-<b id="tit" style="color:#ffcc00"></b>
-<select id="tipo"><option value="divida">💸 ADICIONAR DÍVIDA</option><option value="recebido">✅ RECEBI PAGAMENTO</option></select>
-<input id="desc" placeholder="O que? Ex: Serviços gerais">
-<input id="valor" type="number" inputmode="numeric" placeholder="Valor: 1570">
+
+<div class="box">
+<b id="tituloDev" style="color:#ffcc00"></b>
+<select id="tipo"><option value="divida">💸 ADICIONAR DÍVIDA - O que ele deve</option><option value="recebido">✅ RECEBI - Pagamento</option></select>
+<input id="desc" placeholder="O que foi? Ex: empréstimo, produto...">
+<input id="valor" type="number" placeholder="Valor R$">
 <input id="data" type="date">
-<button class="verm" onclick="addDiv()">+ ADICIONAR NA DÍVIDA</button>
+<button class="btn btn-r" id="btnSalvar" onclick="salvar()">+ ADICIONAR NA DÍVIDA</button>
 <div id="lista"></div>
 </div>
 
 <div class="box">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-<button class="verde" onclick="backup()">💾 BACKUP</button>
-<button class="azul" onclick="restaura()">♻️ RESTAURAR</button>
+<button class="btn btn-g" onclick="fazerBackup()">💾 BACKUP</button>
+<button class="btn btn-b" onclick="abrirRestaurar()">♻️ RESTAURAR</button>
 </div>
-<button class="amarelo" onclick="compartilha()">🔗 COMPARTILHAR APP</button>
-<button class="verde" onclick="zap()">📲 CONVIDAR NO ZAP</button>
-<p style="font-size:11px;color:#aaa">Seu link: bancogratidaooficial-ops.github.io/controle-de-dividas/</p>
-<p style="font-size:11px;color:#ffcc00">PIX: 025.446.319-37 - R$ 2,99/semana</p>
+<button class="btn btn-y" onclick="recuperaAntigo()">🔄 RECUPERAR ANTIGO</button>
+<button class="btn" style="background:#222;color:#ff4444;border:1px solid #ff4444" onclick="zerarTudo()">🗑️ ZERAR TUDO</button>
+<div style="margin-top:10px;border:2px solid #ffcc00;border-radius:12px;padding:10px;background:#1a1a00">
+<b style="color:#ffcc00">💰 GANHE INDICANDO</b><br><small>Compartilhe e ganhe comissão no PIX</small><br>
+<button class="btn btn-y" onclick="compartilharApp()">🔗 COMPARTILHAR APP</button>
+<button class="btn btn-g" onclick="convidarZap()">📲 CONVIDAR NO ZAP</button>
+<p style="font-size:10px">PIX: 025.446.319-37 • R$ 2,99/semana</p>
+</div>
 </div>
 </div>
 
 <script>
-var chave='DIVIDAS_APP_FINAL_V10';
-var db;
-try{db=JSON.parse(localStorage.getItem(chave)||'{"devs":[]}');}catch(e){db={devs:[]};}
-var sel=db.devs.length?db.devs[0].nome:null;
+let chave = 'plugtv_DIVIDAS_FINAL_UNICO_V2';
+let db = {devedores:[]};
+try{
+  let s = localStorage.getItem(chave);
+  if(s) db = JSON.parse(s);
+}catch(e){ db = {devedores:[]}; }
+if(!db.devedores) db.devedores=[];
+let devAtual = db.devedores.length? db.devedores[0].nome : null;
+
+// paywall
+if(localStorage.getItem('teste_iniciado')==='sim'){
+  document.getElementById('paywall').style.display='none';
+}
+function iniciarTeste(){
+  localStorage.setItem('teste_iniciado','sim');
+  document.getElementById('paywall').style.display='none';
+}
+
+function save(){
+  localStorage.setItem(chave, JSON.stringify(db));
+  renderDevs();
+  renderLista();
+}
+
+function addDevedor(){
+  let input = document.getElementById('novoDevedor');
+  let nome = input.value.trim();
+  if(!nome){ alert('Digite o nome'); return; }
+  let existe = null;
+  for(let i=0;i<db.devedores.length;i++){
+    if(db.devedores[i].nome.toLowerCase()===nome.toLowerCase()) existe = db.devedores[i];
+  }
+  if(existe){
+    devAtual = existe.nome;
+    input.value='';
+    save();
+    return;
+  }
+  db.devedores.push({nome:nome, dividas:[]});
+  devAtual = nome;
+  input.value='';
+  save();
+}
+
+function selectDev(nome){ devAtual=nome; save(); }
 
 function salvar(){
-localStorage.setItem(chave,JSON.stringify(db));
-mostrarDevs();
-mostrarLista();
+  if(!devAtual){ alert('Selecione o devedor'); return; }
+  let desc = document.getElementById('desc').value.trim();
+  let valor = parseFloat(document.getElementById('valor').value);
+  let data = document.getElementById('data').value || new Date().toISOString().slice(0,10);
+  let tipo = document.getElementById('tipo').value;
+  if(!valor){ alert('Digite o valor'); return; }
+  let dev = db.devedores.find(d=>d.nome===devAtual);
+  dev.dividas.push({id:Date.now(), desc:desc||'Dívida', valor:valor, data:data, tipo:tipo});
+  document.getElementById('desc').value='';
+  document.getElementById('valor').value='';
+  save();
 }
 
-function addDev(){
-var input=document.getElementById('novoDev');
-var nome=input.value.trim();
-if(!nome){alert('Digite o nome');return;}
-var existe=false;
-for(var i=0;i<db.devs.length;i++){
-if(db.devs[i].nome.toLowerCase()==nome.toLowerCase()){existe=true;sel=db.devs[i].nome;}
-}
-if(!existe){
-db.devs.push({nome:nome,divs:[]});
-sel=nome;
-}
-input.value='';
-salvar();
+function renderDevs(){
+  let div = document.getElementById('listaDevedores');
+  div.innerHTML='';
+  db.devedores.forEach(d=>{
+    let tot=0, rec=0;
+    d.dividas.forEach(l=>{ if(l.tipo==='recebido') rec+=l.valor; else tot+=l.valor; });
+    let el = document.createElement('div');
+    el.className='devedor'+(d.nome===devAtual?' ativo':'');
+    el.innerHTML='<b>'+d.nome+'</b> - Falta R$ '+(tot-rec).toFixed(2);
+    el.onclick=function(){ selectDev(d.nome); };
+    div.appendChild(el);
+  });
 }
 
-function selDev(n){sel=n;salvar();}
-
-function addDiv(){
-if(!sel){alert('Selecione o devedor clicando no nome dele');return;}
-var d=document.getElementById('desc').value.trim();
-var v=parseFloat(document.getElementById('valor').value);
-var dt=document.getElementById('data').value||new Date().toISOString().slice(0,10);
-var t=document.getElementById('tipo').value;
-if(!v){alert('Digite o valor');return;}
-for(var i=0;i<db.devs.length;i++){
-if(db.devs[i].nome==sel){
-db.devs[i].divs.push({id:Date.now(),desc:d||'Servico',valor:v,data:dt,tipo:t});
-}
-}
-document.getElementById('desc').value='';
-document.getElementById('valor').value='';
-salvar();
-}
-
-function mostrarDevs(){
-var div=document.getElementById('listaDevs');
-div.innerHTML='';
-for(var i=0;i<db.devs.length;i++){
-var d=db.devs[i];
-var tot=0,rec=0;
-for(var j=0;j<d.divs.length;j++){if(d.divs[j].tipo=='recebido')rec+=d.divs[j].valor;else tot+=d.divs[j].valor;}
-var el=document.createElement('div');
-el.className='devedor'+(d.nome==sel?' ativo':'');
-el.innerHTML='<span><b>'+d.nome+'</b><br><small>Falta R$ '+(tot-rec).toFixed(2)+'</small></span><span>👉</span>';
-(function(n){el.onclick=function(){selDev(n);};})(d.nome);
-div.appendChild(el);
-}
-}
-
-function mostrarLista(){
-var area=document.getElementById('area');
-if(!sel||db.devs.length==0){area.style.display='none';return;}
-area.style.display='block';
-var dev=null;
-for(var i=0;i<db.devs.length;i++){if(db.devs[i].nome==sel)dev=db.devs[i];}
-if(!dev){sel=db.devs[0].nome;dev=db.devs[0];}
-document.getElementById('tit').innerText='📒 '+dev.nome;
-var lista=document.getElementById('lista');
-lista.innerHTML='';
-var tot=0,rec=0;
-for(var j=0;j<dev.divs.length;j++){if(dev.divs[j].tipo=='recebido')rec+=dev.divs[j].valor;else tot+=dev.divs[j].valor;}
-document.getElementById('tTot').innerText='R$ '+tot.toFixed(2);
-document.getElementById('tRec').innerText='R$ '+rec.toFixed(2);
-document.getElementById('tFal').innerText='R$ '+(tot-rec).toFixed(2);
-for(var k=dev.divs.length-1;k>=0;k--){
-var l=dev.divs[k];
-var it=document.createElement('div');
-it.className='item';
-it.style.borderLeftColor=l.tipo=='recebido'?'#00ff88':'#ffcc00';
-it.innerHTML='<span><b>'+l.desc+'</b><br><small>'+l.data+' - R$ '+l.valor+' '+(l.tipo=='recebido'?'(RECEBIDO)':'')+'</small></span><span onclick="apagar('+l.id+')" style="background:red;color:#fff;padding:5px 12px;border-radius:8px">X</span>';
-lista.appendChild(it);
-}
+function renderLista(){
+  let area = document.getElementById('areaControle');
+  if(!devAtual || db.devedores.length===0){ area.style.display='none'; return; }
+  area.style.display='block';
+  let dev = db.devedores.find(d=>d.nome===devAtual);
+  if(!dev){ devAtual=db.devedores[0].nome; dev=db.devedores[0]; }
+  document.getElementById('tituloDev').innerText='📒 '+dev.nome;
+  let tot=0, rec=0;
+  dev.dividas.forEach(l=>{ if(l.tipo==='recebido') rec+=l.valor; else tot+=l.valor; });
+  document.getElementById('totalDivida').innerText='R$ '+tot.toFixed(2);
+  document.getElementById('totalRecebido').innerText='R$ '+rec.toFixed(2);
+  document.getElementById('totalFalta').innerText='R$ '+(tot-rec).toFixed(2);
+  let lista = document.getElementById('lista');
+  lista.innerHTML='';
+  dev.dividas.slice().reverse().forEach(l=>{
+    let it=document.createElement('div');
+    it.className='item'+(l.tipo==='recebido'?' ok':'');
+    it.innerHTML='<span><b>'+l.desc+'</b><br><small>'+l.data+' R$ '+l.valor+'</small></span><span onclick="apagar('+l.id+')" style="color:red;padding:8px">X</span>';
+    lista.appendChild(it);
+  });
 }
 
 function apagar(id){
-for(var i=0;i<db.devs.length;i++){
-if(db.devs[i].nome==sel){
-var novo=[];
-for(var j=0;j<db.devs[i].divs.length;j++){if(db.devs[i].divs[j].id!=id)novo.push(db.devs[i].divs[j]);}
-db.devs[i].divs=novo;
+  let dev=db.devedores.find(d=>d.nome===devAtual);
+  dev.dividas=dev.dividas.filter(x=>x.id!==id);
+  save();
 }
+function fazerBackup(){
+  let blob=new Blob([JSON.stringify(db)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='backup.json'; a.click();
 }
-salvar();
+function abrirRestaurar(){
+  let inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=function(e){
+    let f=e.target.files[0]; let r=new FileReader();
+    r.onload=function(ev){ try{ let o=JSON.parse(ev.target.result); if(o.devedores){ db=o; devAtual=o.devedores[0].nome; save(); alert('Restaurado'); }}catch(e){ alert('Erro'); } };
+    r.readAsText(f);
+  }; inp.click();
 }
-
-function backup(){
-var b=new Blob([JSON.stringify(db)],{type:'application/json'});
-var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup-dividas-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+function recuperaAntigo(){ alert('Use o backup'); }
+function zerarTudo(){ if(confirm('Zerar tudo?')){ db={devedores:[]}; devAtual=null; save(); } }
+function compartilharApp(){
+  let t='https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
+  if(navigator.share) navigator.share({text:t}); else { navigator.clipboard.writeText(t); alert('Link copiado'); }
 }
-function restaura(){
-var inp=document.createElement('input');inp.type='file';inp.accept='.json';
-inp.onchange=function(e){
-var f=e.target.files[0];var r=new FileReader();
-r.onload=function(ev){try{db=JSON.parse(ev.target.result);if(db.devs&&db.devs.length)sel=db.devs[0].nome;salvar();alert('Restaurado!');}catch(e){alert('Arquivo invalido');}};
-r.readAsText(f);
-};
-inp.click();
-}
-function compartilha(){
-var t='💰 Controle de Dividas - https://bancogratidaooficial-ops.github.io/controle-de-dividas/';
-if(navigator.share){navigator.share({text:t});}else{navigator.clipboard.writeText(t);alert('Link copiado');}
-}
-function zap(){
-var m=encodeURIComponent('💰 App Controle de Dividas: https://bancogratidaooficial-ops.github.io/controle-de-dividas/ PIX 025.446.319-37 R$2,99/sem');
-window.open('https://wa.me/?text='+m,'_blank');
+function convidarZap(){
+  let m=encodeURIComponent('App Controle de Dividas https://bancogratidaooficial-ops.github.io/controle-de-dividas/ PIX 025.446.319-37');
+  window.open('https://wa.me/?text='+m,'_blank');
 }
 
-mostrarDevs();
-mostrarLista();
+renderDevs();
+renderLista();
 document.getElementById('data').valueAsDate=new Date();
 </script>
 </body>
